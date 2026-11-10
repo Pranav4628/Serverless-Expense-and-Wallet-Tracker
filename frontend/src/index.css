@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   Global Base Styles
+   ======================================== */
+@layer base {
+  * {
+    @apply border-neutral-200 dark:border-neutral-700;
+  }
+
+  html {
+    @apply antialiased;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: normal;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-50;
+    @apply transition-colors duration-200;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Ensure numbers align properly in tables and currency displays */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ========================================
+   Component Utilities
+   ======================================== */
+@layer components {
+  /* Card Component */
+  .card {
+    @apply bg-white dark:bg-neutral-800 rounded-card p-6;
+    @apply shadow-card-light dark:shadow-none dark:border dark:border-neutral-700;
+    @apply transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply hover:shadow-card-hover dark:hover:border-neutral-600;
+  }
+
+  /* Button Styles */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-lg font-medium;
+    @apply transition-all duration-150;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-600 dark:focus:ring-primary-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800;
+    @apply dark:bg-primary-500 dark:hover:bg-primary-600 dark:active:bg-primary-700;
+    @apply shadow-sm hover:shadow-md;
+    @apply transform hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply bg-neutral-100 text-neutral-700 hover:bg-neutral-200 active:bg-neutral-300;
+    @apply dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600 dark:active:bg-neutral-500;
+  }
+
+  .btn-danger {
+    @apply bg-expense text-white hover:bg-expense-dark active:bg-red-700;
+    @apply shadow-sm hover:shadow-md;
+  }
+
+  .btn-ghost {
+    @apply text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200;
+    @apply dark:text-neutral-300 dark:hover:bg-neutral-700 dark:active:bg-neutral-600;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  /* Input Fields */
+  .input {
+    @apply w-full px-4 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-600;
+    @apply bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50;
+    @apply placeholder-neutral-400 dark:placeholder-neutral-500;
+    @apply transition-all duration-150;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent;
+    @apply dark:focus:ring-primary-500;
+  }
+
+  .input-error {
+    @apply border-expense focus:ring-expense;
+  }
+
+  /* Badge Styles */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-income {
+    @apply bg-income-light text-income-dark dark:bg-income-dark/30 dark:text-income;
+  }
+
+  .badge-expense {
+    @apply bg-expense-light text-expense-dark dark:bg-expense-dark/30 dark:text-expense;
+  }
+
+  .badge-warning {
+    @apply bg-warning-light text-warning-dark dark:bg-warning-dark/30 dark:text-warning;
+  }
+
+  /* Typography */
+  .heading-1 {
+    @apply text-2xl font-semibold text-neutral-900 dark:text-neutral-50;
+  }
+
+  .heading-2 {
+    @apply text-xl font-semibold text-neutral-900 dark:text-neutral-50;
+  }
+
+  .heading-3 {
+    @apply text-lg font-semibold text-neutral-900 dark:text-neutral-50;
+  }
+
+  .text-muted {
+    @apply text-neutral-500 dark:text-neutral-400;
+  }
+
+  .text-currency {
+    @apply font-semibold tabular-nums;
+  }
+
+  /* Link Styles */
+  .link {
+    @apply text-primary-600 dark:text-primary-500 hover:underline;
+    @apply transition-colors duration-150;
+  }
+
+  /* Animations */
+  .fade-in {
+    @apply animate-fade-in;
+  }
+
+  .scale-in {
+    @apply animate-scale-in;
+  }
+
+  .slide-up {
+    @apply animate-slide-up;
+  }
+}
+
+/* ========================================
+   Scrollbar Styling
+   ======================================== */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(156 163 175) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-neutral-300 dark:bg-neutral-600 rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-400 dark:bg-neutral-500;
+  }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
