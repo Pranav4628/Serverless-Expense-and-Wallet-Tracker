@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Plus, ChevronLeft, ChevronRight, FileUp } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
-import TransactionTable from '../components/transactions/TransactionTable';
+import TransactionList from '../components/transactions/TransactionList';
 import TransactionModal from '../components/transactions/TransactionModal';
 import TransactionFilterBar from '../components/transactions/TransactionFilterBar';
+import DragDropUploader from '../components/common/DragDropUploader';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import ErrorAlert from '../components/common/ErrorAlert';
+import Modal from '../components/common/Modal';
+import Toast from '../components/common/Toast';
+import { fetchPresignedUrl, uploadToS3, importCSV, importResultMessage } from '../services/uploadService';
 
 export default function TransactionsPage() {
   const {
@@ -22,6 +26,10 @@ export default function TransactionsPage() {
   } = useTransactions();
 
   const [modalOpen, setModalOpen]       = useState(false);
+  const [importOpen, setImportOpen]     = useState(false);
+  const [isImporting, setIsImporting]   = useState(false);
+  const [importError, setImportError]   = useState('');
+  const [toast, setToast]               = useState('');
   const [editTarget, setEditTarget]     = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [actionError, setActionError]   = useState('');
@@ -70,6 +78,28 @@ export default function TransactionsPage() {
     updateFilters({ page: newPage });
   };
 
+  const dismissToast = useCallback(() => setToast(''), []);
+
+  const handleImportFile = async (file) => {
+    setIsImporting(true);
+    setImportError('');
+    try {
+      const presigned = await fetchPresignedUrl('csv');
+      if (!presigned.s3ObjectKey) {
+        throw new Error('Presigned URL response did not include an S3 object key.');
+      }
+      await uploadToS3(presigned.uploadUrl, file);
+      const result = await importCSV(presigned.s3ObjectKey);
+      setImportOpen(false);
+      setToast(importResultMessage(result));
+      await fetchTransactions();
+    } catch (err) {
+      setImportError(err.response?.data?.message ?? err.message ?? 'Failed to import statement.');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-fade-in">
       {/* Header */}
@@ -80,14 +110,27 @@ export default function TransactionsPage() {
             {pagination.total > 0 ? pagination.total : transactions.length} {pagination.total === 1 ? 'entry' : 'entries'}
           </p>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary gap-2"
-          onClick={handleOpenAdd}
-        >
-          <Plus className="h-5 w-5" aria-hidden="true" />
-          <span>Add Transaction</span>
-        </button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <button
+            type="button"
+            className="btn btn-secondary gap-2"
+            onClick={() => {
+              setImportError('');
+              setImportOpen(true);
+            }}
+          >
+            <FileUp className="h-5 w-5" aria-hidden="true" />
+            <span>Import Statement</span>
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary gap-2"
+            onClick={handleOpenAdd}
+          >
+            <Plus className="h-5 w-5" aria-hidden="true" />
+            <span>Add Transaction</span>
+          </button>
+        </div>
       </div>
 
       {/* Errors */}
@@ -98,7 +141,7 @@ export default function TransactionsPage() {
       <TransactionFilterBar filters={filters} onUpdate={updateFilters} />
 
       {/* Table */}
-      <TransactionTable
+      <TransactionList
         transactions={transactions}
         isLoading={isLoading}
         onEdit={handleOpenEdit}
@@ -137,6 +180,31 @@ export default function TransactionsPage() {
           </button>
         </div>
       )}
+
+      <Modal
+        isOpen={importOpen}
+        onClose={() => {
+          if (!isImporting) setImportOpen(false);
+        }}
+        title="Import Statement"
+        size="md"
+      >
+        <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-400">
+          Upload a bank or UPI statement. CSV files up to 5 MB.
+        </p>
+        <ErrorAlert message={importError} onDismiss={() => setImportError('')} />
+        <DragDropUploader
+          accept=".csv,text/csv"
+          maxSizeBytes={5 * 1024 * 1024}
+          onFileSelected={handleImportFile}
+          isUploading={isImporting}
+          disabled={isImporting}
+          label="Drag a CSV here or click to browse"
+          hint="CSV up to 5 MB"
+        />
+      </Modal>
+
+      <Toast message={toast} onDismiss={dismissToast} />
 
       {/* Add / Edit modal */}
       <TransactionModal
