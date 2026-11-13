@@ -21,7 +21,7 @@
 ## 3. Current Project State
 *   **Backend Status: 100% Complete.** All AWS infrastructure (DynamoDB, Cognito, IAM, API Gateway, S3, and Lambda functions) has been manually configured and successfully tested in the AWS Management Console. 
 *   **Frontend Status: Baseline complete, awaiting Redesign & Advanced Features.** The initial React app handles basic Auth and CRUD, but needs a complete UI/UX overhaul (Light/Dark mode, professional enterprise styling) and the implementation of the UI components for the advanced modules.
-*   **Note to AI Assistant (Cursor):** DO NOT generate Infrastructure as Code (IaC) like Terraform or CDK, and DO NOT rewrite the backend Lambda functions. Your primary job is to build the React frontend and wire it to the existing API Gateway endpoints.
+*   **Note to AI Assistant (Kiro):** DO NOT generate Infrastructure as Code (IaC) like Terraform or CDK, and DO NOT rewrite the backend Lambda functions. Your primary job is to build the React frontend and wire it to the existing API Gateway endpoints.
 
 ---
 

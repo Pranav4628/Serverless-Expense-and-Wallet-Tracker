@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, List, BarChart2, X, Menu } from 'lucide-react';
+import { LayoutDashboard, List, Users, BarChart2, X, Menu } from 'lucide-react';
 
 const navItems = [
   { to: '/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
   { to: '/transactions', label: 'Transactions', icon: List },
+  { to: '/groups',       label: 'Group Wallets', icon: Users },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {

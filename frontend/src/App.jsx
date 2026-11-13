@@ -14,6 +14,8 @@ import ForgotPasswordForm from './components/auth/ForgotPasswordForm';
 // Protected pages
 import DashboardPage    from './pages/DashboardPage';
 import TransactionsPage from './pages/TransactionsPage';
+import GroupsPage       from './pages/GroupsPage';
+import GroupLedgerPage  from './pages/GroupLedgerPage';
 
 export default function App() {
   return (
@@ -43,6 +45,8 @@ export default function App() {
           >
             <Route path="/dashboard"    element={<DashboardPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
+            <Route path="/groups"       element={<GroupsPage />} />
+            <Route path="/groups/:id"   element={<GroupLedgerPage />} />
           </Route>
 
           {/* ── Default redirects ──────────────────────────────── */}
