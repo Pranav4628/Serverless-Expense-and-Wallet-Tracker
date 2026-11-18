@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createGroupTransaction } from '../../services/groupService';
+import { createGroupTransaction, updateGroupTransaction } from '../../services/groupService';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../common/Modal';
 import ErrorAlert from '../common/ErrorAlert';
@@ -86,14 +86,21 @@ export default function GroupTransactionModal({ isOpen, onClose, onSuccess, grou
     setIsLoading(true);
     setApiError('');
     try {
-      await createGroupTransaction(groupId, {
-        amount: parseFloat(form.amount),
-        type: form.type,
-        category: form.category,
-        date: form.date,
+      const payload = {
+        amount:      parseFloat(form.amount),
+        type:        form.type,
+        category:    form.category,
+        date:        form.date,
         description: form.description.trim() || undefined,
-        paidBy: form.paidBy,
-      });
+        paidBy:      form.paidBy,
+      };
+
+      if (isEdit) {
+        const txId = transaction.transactionId ?? transaction.id;
+        await updateGroupTransaction(groupId, txId, payload);
+      } else {
+        await createGroupTransaction(groupId, payload);
+      }
       onSuccess?.();
     } catch (err) {
       setApiError(err.response?.data?.message ?? err.message ?? 'Failed to save transaction.');

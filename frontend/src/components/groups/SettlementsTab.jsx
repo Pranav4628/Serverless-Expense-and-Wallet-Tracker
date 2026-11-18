@@ -1,138 +1,140 @@
 import { formatCurrency } from '../../utils/formatters';
-import { useAuth } from '../../context/AuthContext';
 import UPILinkButton from './UPILinkButton';
+import UPIQrUploader from './UPIQrUploader';
 import SkeletonCard from '../common/SkeletonCard';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 
-function SettlementCard({ settlement, currentUserId, members }) {
-  const fromMember = members.find(m => (m.userId ?? m.id) === settlement.from);
-  const toMember = members.find(m => (m.userId ?? m.id) === settlement.to);
-
-  const fromName = fromMember?.name ?? fromMember?.email ?? 'Unknown';
-  const toName = toMember?.name ?? toMember?.email ?? 'Unknown';
-  const toUPI = toMember?.upiId ?? toMember?.upi ?? null;
-
-  const isCurrentUserOwed = settlement.from === currentUserId;
-  const amount = settlement.amount ?? 0;
+/**
+ * Renders one debt row.
+ * debt: { from: "jane@email.com", to: "john@email.com", amount: 400, upiQrUrl?: string }
+ * `from` owes `to`.
+ */
+function DebtRow({ debt, currentUserEmail, idx }) {
+  const isCurrentUserDebtor   = debt.from === currentUserEmail;
+  const isCurrentUserCreditor = debt.to   === currentUserEmail;
 
   return (
-    <div className="card animate-slide-up">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4 min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-            <span className="font-semibold truncate">{fromName}</span>
-            <ArrowRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
-            <span className="font-semibold truncate">{toName}</span>
-          </div>
+    <div
+      className="card animate-slide-up flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      style={{ animationDelay: `${idx * 50}ms` }}
+    >
+      {/* Who owes whom */}
+      <div className="flex items-center gap-2 min-w-0 flex-1 text-sm">
+        <span className={`font-semibold truncate ${
+          isCurrentUserDebtor
+            ? 'text-expense dark:text-expense'
+            : 'text-neutral-800 dark:text-neutral-200'
+        }`}>
+          {debt.from}
+        </span>
+        <ArrowRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+        <span className={`font-semibold truncate ${
+          isCurrentUserCreditor
+            ? 'text-income dark:text-income'
+            : 'text-neutral-800 dark:text-neutral-200'
+        }`}>
+          {debt.to}
+        </span>
+      </div>
+
+      {/* Amount + Settle Up */}
+      <div className="flex items-center gap-4 shrink-0">
+        <div className="text-right">
+          <p className={`text-lg font-bold tabular-nums ${
+            isCurrentUserDebtor ? 'text-expense' : 'text-income'
+          }`}>
+            {formatCurrency(debt.amount)}
+          </p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            {isCurrentUserDebtor ? 'You owe' : 'Owed to you'}
+          </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className={`text-lg font-bold tabular-nums ${
-              isCurrentUserOwed ? 'text-income' : 'text-expense'
-            }`}>
-              {formatCurrency(amount)}
-            </p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {isCurrentUserOwed ? 'You are owed' : 'You owe'}
-            </p>
-          </div>
-
-          {!isCurrentUserOwed && toUPI && (
-            <UPILinkButton
-              upiId={toUPI}
-              name={toName}
-              amount={amount}
-              label="Settle Up"
-            />
-          )}
-        </div>
+        {/* Show Settle Up only when current user is the debtor */}
+        {isCurrentUserDebtor && (
+          <UPILinkButton
+            upiQrUrl={debt.upiQrUrl ?? null}
+            name={debt.to}
+            amount={debt.amount}
+            label="Settle Up"
+          />
+        )}
       </div>
     </div>
   );
 }
 
-export default function SettlementsTab({ settlements = [], isLoading, members = [], groupId }) {
-  const { user } = useAuth();
-  const currentUserId = user?.sub;
-
+/**
+ * SettlementsTab
+ *
+ * Props:
+ *   debts            — [{ from, to, amount, upiQrUrl? }]
+ *   isLoading        — boolean
+ *   currentUserEmail — logged-in user's email (from AuthContext)
+ *   groupId          — needed by UPIQrUploader to call POST /groups/{id}/qr
+ *   currentUserQrUrl — the logged-in user's existing QR URL (if already uploaded)
+ *   onQrUploaded     — callback(newUrl) so parent can persist the new URL in state
+ */
+export default function SettlementsTab({
+  debts = [],
+  isLoading,
+  currentUserEmail,
+  groupId,
+  currentUserQrUrl,
+  onQrUploaded,
+}) {
   if (isLoading) return <SkeletonCard lines={4} />;
 
-  if (!settlements.length) {
-    return (
-      <div className="py-12 text-center">
-        <div className="w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center mb-4 mx-auto">
-          <svg className="w-8 h-8 text-neutral-400 dark:text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-          All settled up!
-        </p>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          No outstanding debts in this group.
-        </p>
-      </div>
-    );
-  }
-
-  // Filter settlements involving current user
-  const userSettlements = settlements.filter(
-    s => s.from === currentUserId || s.to === currentUserId
-  );
-
-  if (userSettlements.length === 0) {
-    return (
-      <div className="py-12 text-center">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          You have no outstanding debts in this group.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-          Your Settlements
+    <div className="space-y-6">
+
+      {/* ── My QR Code upload section ─────────────────────────────────────── */}
+      <div className="card bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700">
+        <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-1">
+          Your Payment QR Code
         </h3>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Outstanding debts involving you
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
+          Upload your UPI QR code once so other members can scan and pay you back.
         </p>
+        <UPIQrUploader
+          groupId={groupId}
+          currentQrUrl={currentUserQrUrl}
+          onUploaded={onQrUploaded}
+        />
       </div>
 
-      {userSettlements.map((settlement, idx) => (
-        <div key={idx} style={{ animationDelay: `${idx * 50}ms` }}>
-          <SettlementCard
-            settlement={settlement}
-            currentUserId={currentUserId}
-            members={members}
-          />
-        </div>
-      ))}
+      {/* ── Debts list ────────────────────────────────────────────────────── */}
+      <div>
+        <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-3">
+          Outstanding Debts
+        </h3>
 
-      {settlements.length > userSettlements.length && (
-        <>
-          <div className="border-t border-neutral-200 dark:border-neutral-700 pt-6 mt-6">
-            <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
-              Other Settlements
-            </h3>
+        {debts.length === 0 ? (
+          <div className="py-10 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-income-light dark:bg-income-dark/20 mb-4 mx-auto">
+              <CheckCircle2 className="w-8 h-8 text-income" aria-hidden="true" />
+            </div>
+            <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+              All settled up!
+            </p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              No outstanding debts in this group.
+            </p>
           </div>
-
-          {settlements
-            .filter(s => s.from !== currentUserId && s.to !== currentUserId)
-            .map((settlement, idx) => (
-              <div key={idx} style={{ animationDelay: `${(idx + userSettlements.length) * 50}ms` }}>
-                <SettlementCard
-                  settlement={settlement}
-                  currentUserId={currentUserId}
-                  members={members}
-                />
-              </div>
+        ) : (
+          <div className="space-y-3">
+            {debts.map((debt, idx) => (
+              <DebtRow
+                key={idx}
+                debt={debt}
+                currentUserEmail={currentUserEmail}
+                idx={idx}
+              />
             ))}
-        </>
-      )}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

@@ -124,7 +124,7 @@ export default function LoginForm() {
               )}
             </div>
 
-            <button type="submit" className="btn-primary w-full" disabled={isLoading}>
+            <button type="submit" className="btn-primary w-full p-2" disabled={isLoading}>
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>

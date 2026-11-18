@@ -56,13 +56,13 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess, groupId, ex
             htmlFor="member-email"
             className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300"
           >
-            Friend's Email Address <span aria-hidden="true" className="text-expense">*</span>
+            Add Email Address <span aria-hidden="true" className="text-expense">*</span>
           </label>
           <input
             id="member-email"
             type="email"
             className={`input ${error ? 'input-error' : ''}`}
-            placeholder="friend@example.com"
+            placeholder="example@email.com"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setError(''); }}
             disabled={isLoading}

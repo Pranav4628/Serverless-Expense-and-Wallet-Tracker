@@ -238,7 +238,7 @@ export default function SignUpForm() {
               {errors.confirm && <p className="mt-1.5 text-xs text-expense">{errors.confirm}</p>}
             </div>
 
-            <button type="submit" className="btn-primary w-full" disabled={isLoading}>
+            <button type="submit" className="btn-primary w-full p-2" disabled={isLoading}>
               {isLoading ? 'Creating account…' : 'Create account'}
             </button>
           </form>

@@ -147,9 +147,20 @@ export async function deleteGroupTransaction(groupId, transactionId) {
 /**
  * Get peer-to-peer debt calculations for a group.
  * @param {string} groupId
- * @returns {Promise<Array>} Array of settlement objects
+ * @returns {Promise<{ debts: Array }>}
  */
 export async function getGroupSettlements(groupId) {
   const response = await apiClient.get(`/groups/${groupId}/settlements`);
+  return response.data;
+}
+
+/**
+ * Save the current user's UPI QR code URL to their membership record.
+ * @param {string} groupId
+ * @param {string} upiQrUrl  — the S3 object key returned by the presigned-url flow
+ * @returns {Promise<Object>}
+ */
+export async function saveGroupQrCode(groupId, upiQrUrl) {
+  const response = await apiClient.post(`/groups/${groupId}/qr`, { upiQrUrl });
   return response.data;
 }
